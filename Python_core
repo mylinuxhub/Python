@@ -165,3 +165,81 @@ Say:
 ---
 
 End of Phase 1 – Topic 1
+
+
+
+
+==================================================
+Q1. Why is reading the file line-by-line better than file.read()?
+Your answer
+line by line load the file in memory one at time . file.read will whole file in memory
+✅ What you got right
+You correctly identified memory usage
+That is the primary reason 👍
+🔧 Upgrade it to Google level
+Google wants one more dimension:
+Streaming
+Scalability
+Early processing
+✅ Google-ready answer
+“Reading the file line by line allows streaming processing and keeps memory usage low, especially for large files. It also lets us start processing immediately instead of waiting for the entire file to load, which improves scalability.”
+⭐ Interview tip
+Say both:
+Memory efficiency
+Streaming / scalability
+✅ Q2. What would you change if the file is 10GB?
+Your answer
+line-by-line
+✅ Correct, but too short for Google
+Google expects you to expand your thinking.
+🔧 What’s missing
+Avoid loading entire file
+Possibly parallel processing
+Failure tolerance
+✅ Google-ready answer
+“For a 10GB file, I would strictly use line-by-line streaming to avoid memory issues. I would also consider chunk-based processing, add progress tracking, and ensure the system can resume processing if it fails midway.”
+If you want to sound even more senior:
+“If needed, I’d process it in batches and consider parallel processing depending on the workload.”
+❌ Q3. What if duplicate detection must be case-sensitive?
+Your answer
+convert in lower case
+❌ This is incorrect (important!)
+Case-sensitive means:
+"Apple" and "apple" are different
+Lowercasing would break the requirement
+✅ Correct Google answer
+“If duplicate detection must be case-sensitive, I would not normalize case. I would store and compare strings exactly as they appear.”
+⭐ Interview correction moment
+This is not a failure — this is a learning win.
+Google cares more about how you correct yourself.
+If you catch it during interview, say:
+“Actually, since the requirement is case-sensitive, I should avoid lowercasing and preserve the original case.”
+That scores points.
+❌ Q4. How would you log malformed lines instead of skipping them?
+Your answer
+Not sure
+Perfectly okay. This is where we learn.
+🔍 What Google is testing here
+Observability
+Debuggability
+Production thinking
+✅ Simple, correct approach
+Option 1: Print (basic)
+print(f"Malformed line: {line}")
+Good for small scripts, not production.
+Option 2: Logging (Google-preferred)
+import logging
+
+logging.basicConfig(level=logging.WARNING)
+
+try:
+    value = int(line)
+except ValueError:
+    logging.warning(f"Malformed line skipped: {line}")
+Why Google likes this
+Doesn’t crash
+Keeps record of bad data
+Scales to production systems
+⭐ Google-ready explanation
+“Instead of skipping malformed lines silently, I would log them using a logging framework so we can debug data quality issues without interrupting processing.”
+
