@@ -1,0 +1,167 @@
+
+# Google Python Interview Preparation – Phase 1
+## Mentor-Guided Study Material
+
+This document is designed for **Google Software Engineer interviews**.
+It combines **tutorial-style explanations** with **Google interview-style thinking**.
+
+---
+
+## How Google Evaluates Python
+Google focuses on:
+- Problem-solving ability
+- Clean, readable, correct code
+- Edge-case handling
+- Time & space complexity
+- Defensive programming
+
+They do **not** focus on:
+- Syntax trivia
+- Framework-specific APIs
+
+---
+
+## Topic 1: Reading & Processing Data from a File (Google Style)
+
+### Typical Google Question
+> You are given a file containing text data.  
+> Read and process the data safely.
+
+---
+
+## Step 1: Clarify Requirements (Very Important)
+
+Before writing code, always clarify:
+
+### 1. Data Size
+- Small file or very large (GBs)?
+- Can it fit into memory?
+
+### 2. Data Format
+- One record per line?
+- CSV / JSON / plain text?
+- Can there be empty lines?
+
+### 3. Data Cleanliness
+- Leading/trailing spaces
+- Newline characters
+- Uppercase vs lowercase
+- Duplicate values
+- Malformed records
+
+### 4. Failure Scenarios
+- File not found
+- Permission issues
+- Corrupted data
+
+---
+
+## Step 2: Safe File Reading Pattern
+
+```python
+try:
+    with open("data.txt", "r") as file:
+        for line in file:
+            process(line)
+except FileNotFoundError:
+    print("File not found")
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
+
+Why this matters:
+- `with` ensures file is closed safely
+- Line-by-line reading is memory efficient
+- Explicit error handling prevents crashes
+
+---
+
+## Step 3: Data Cleaning Checklist (Google Expectation)
+
+### Remove whitespace & newlines
+```python
+line = line.strip()
+```
+
+### Skip empty lines
+```python
+if not line:
+    continue
+```
+
+### Normalize case
+```python
+line = line.lower()
+```
+
+### Handle duplicates
+```python
+seen = set()
+if line not in seen:
+    seen.add(line)
+```
+
+### Handle malformed data
+```python
+try:
+    value = int(line)
+except ValueError:
+    continue
+```
+
+---
+
+## Step 4: Complete Google-Ready Example
+
+```python
+def read_unique_words(file_path):
+    unique_words = set()
+
+    try:
+        with open(file_path, "r") as file:
+            for line in file:
+                word = line.strip().lower()
+                if not word:
+                    continue
+                unique_words.add(word)
+
+    except FileNotFoundError:
+        raise Exception("Input file not found")
+
+    return unique_words
+```
+
+### Complexity
+- Time: O(n)
+- Space: O(n)
+
+---
+
+## How to Explain This in Interview
+
+Say:
+> I process the file line-by-line for memory efficiency.  
+> I normalize input by trimming whitespace and converting to lowercase.  
+> I use a set to remove duplicates in O(1) time.  
+> I safely ignore malformed or empty records.
+
+---
+
+## Google Follow-up Questions (Practice)
+
+1. Why is line-by-line reading better than `file.read()`?
+2. What changes if the file is 10GB?
+3. How would you make duplicate detection case-sensitive?
+4. How would you log malformed records instead of skipping them?
+
+---
+
+## Next Topics (Coming Up)
+- Mutability & function behavior
+- Exception handling (deep dive)
+- Python data structures (Google depth)
+- Algorithms with Python
+
+---
+
+End of Phase 1 – Topic 1
