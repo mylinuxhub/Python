@@ -1,0 +1,270 @@
+Mutability + references = side effects.
+
+Immutable objects
+These cannot be changed in place:
+  int
+  float
+  str
+  tuple
+  frozenset
+Example:
+  x = 10
+  x = x + 1   # creates a new object
+
+🔹 Mutable objects
+These can be changed in place:
+  list
+  dict
+  set
+
+custom objects
+Example:
+  lst = [1, 2]
+  lst.append(3)  # same object, modified
+  👉 Google key idea:
+Mutability + references = side effects.
+
+
+PART 2 — GOOGLE CORE QUESTION
+❓ “Why does modifying a list inside a function affect the caller?”
+
+Let’s walk through it step by step.
+==============================
+Example
+def add_item(lst):
+    lst.append(100)
+
+my_list = [1, 2, 3]
+add_item(my_list)
+print(my_list)
+=============================
+Output
+[1, 2, 3, 100]
+
+🧠 What actually happens (THIS IS WHAT GOOGLE WANTS)
+my_list is a reference to a list object
+When passed to the function, the reference is copied
+Both caller and function point to the same object
+append() modifies the object in place
+
+
+👉 No new list is created.
+⭐ Google-level explanation
+“Lists are mutable, and Python passes object references to functions. When we modify a list inside a function, we’re modifying the same underlying object that the caller references, so the change is visible outside.”
+
+
+
+👉  Modification vs reassignment — Google loves this distinction.
+
+def update_list(lst):
+    lst = [10, 20]
+
+my_list = [1, 2, 3]
+update_list(my_list)
+print(my_list)
+
+
+Ans [1,2,3]
+
+Why?
+lst = [10, 20] creates a new list
+The local reference is reassigned
+The original list is untouched
+
+
+👉  PART 4 — DEFAULT ARGUMENT TRAP
+def add_item(item, lst=[]):
+    lst.append(item)
+    return lst
+
+print(add_item(1))
+print(add_item(2))
+print(add_item(3))
+
+[1]
+[1, 2]
+[1, 2, 3]
+
+🧠 Why this happens
+Default arguments are evaluated once
+lst is shared across function calls
+It persists between invocations
+
+✅ Google-approved fix
+def add_item(item, lst=None):
+    if lst is None:
+        lst = []
+    lst.append(item)
+    return lst
+
+⭐ Interview explanation
+“Mutable default arguments are evaluated once at function definition time, which can cause shared state across calls. I avoid this by using None and initializing inside the function.”
+
+👉   PART 5 — SHALLOW vs DEEP COPY
+Shallow copy
+
+import copy
+new_list = copy.copy(old_list)
+
+New container
+Same inner objects
+
+Deep copy
+new_list = copy.deepcopy(old_list)
+
+Completely independent copy
+❓ Google follow-up
+“When would you need a deep copy?”
+✅ Correct answer
+“When the data structure contains nested mutable objects and I want full isolation between copies.”
+
+PART 6 — SAFE FUNCTION DESIGN (VERY IMPORTANT)
+Rule for Google interviews
+👉 Never mutate inputs unless explicitly required
+Instead:
+def safe_add(lst):
+    new_lst = lst.copy()
+    new_lst.append(100)
+    return new_lst
+
+
+
+=====================================================
+✅ Q1. Why is this dangerous?
+Code
+def foo(x, cache={}):
+    cache[x] = True
+Your answer
+because cache is one list object but gain we add as dictionary
+You sensed shared object, which is good 👍
+But let’s sharpen it.
+❌ What’s actually wrong (clear explanation)
+cache is a dictionary, not a list
+Default arguments are created once, not per call
+This dictionary is shared across all function calls
+🧠 What really happens
+foo(1)  # cache = {1: True}
+foo(2)  # cache = {1: True, 2: True}
+foo(3)  # cache = {1: True, 2: True, 3: True}
+Even if you didn’t want caching — it happens silently.
+🔴 Why Google considers this dangerous
+Hidden shared state
+Unexpected behavior
+Hard-to-debug production bugs
+Thread-safety issues
+✅ Google-ready answer
+“This is dangerous because the default dictionary is shared across function calls. Since default arguments are evaluated once, the cache persists between calls, creating hidden state and unexpected side effects.”
+✅ Correct fix (Google-approved)
+def foo(x, cache=None):
+    if cache is None:
+        cache = {}
+    cache[x] = True
+
+================================================
+✅ Q2. Difference between lst.copy() and lst[:]
+You said:
+not sure
+That’s very normal. Let’s lock it in clearly.
+🔹 Key truth (important!)
+👉 For lists, lst.copy() and lst[:] are equivalent
+Both create a shallow copy.
+Example
+lst = [1, 2, 3]
+
+a = lst.copy()
+b = lst[:]
+a and b are new lists
+But inner objects are shared
+Proof
+lst = [[1, 2], [3, 4]]
+a = lst.copy()
+
+a[0].append(99)
+print(lst)
+Output
+[[1, 2, 99], [3, 4]]
+Why?
+Outer list copied
+Inner lists shared
+✅ Google-ready answer
+“Both lst.copy() and slicing create a shallow copy of the list. The outer container is copied, but nested mutable objects are still shared.”
+
+Both copies reflect the change because they point to the same inner lists.
+Difference in practice
+.copy() is more readable and explicit.
+[:] is more flexible (works on strings, tuples, etc.).
+Performance is nearly identical for lists.
+===================================================
+
+
+
+
+Q3. How would you design a function to avoid side effects?
+Your answer:
+don’t modify objects that were passed in—work on copies instead
+This is conceptually correct, but Google wants structure.
+🔧 Upgrade it to Google level
+❌ Risky function
+def add_item(lst):
+    lst.append(10)
+✅ Safe design
+def add_item(lst):
+    new_lst = lst.copy()
+    new_lst.append(10)
+    return new_lst
+⭐ Google-style explanation
+“To avoid side effects, I avoid mutating input arguments directly. Instead, I work on copies and return new objects, unless mutation is explicitly required by the API.”
+This shows:
+Defensive coding
+API design thinking
+Production mindset
+🧠 NOW — DEEP DIVE
+SHALLOW vs DEEP COPY (VERY IMPORTANT)
+Google loves this topic.
+🔹 SHALLOW COPY (outer only)
+What it copies
+The container
+❌ NOT nested objects
+Examples
+lst.copy()
+lst[:]
+copy.copy(lst)
+Diagram
+Original list ──┐
+                ├── inner object (shared)
+Copied list  ───┘
+When shallow copy is OK
+Flat lists
+Immutable inner objects
+Performance matters
+🔹 DEEP COPY (full isolation)
+What it copies
+Container
+All nested objects (recursively)
+Example
+import copy
+new_lst = copy.deepcopy(old_lst)
+Proof
+lst = [[1, 2], [3, 4]]
+d = copy.deepcopy(lst)
+
+d[0].append(99)
+print(lst)
+Output
+[[1, 2], [3, 4]]
+When deep copy is required
+Nested mutable data
+Configuration templates
+Independent processing
+Safety > performance
+⭐ Google follow-up question
+“Why not always use deep copy?”
+Correct answer
+“Deep copy is more expensive in terms of memory and performance, so I use it only when full isolation is required.”
+🔑 FINAL GOOGLE CHEAT SHEET
+Topic	Key Idea
+Mutable default args	Shared state
+Modification vs assignment	Different behavior
+Shallow copy	Shared inner objects
+Deep copy	Full isolation
+Safe APIs	Copy inputs
